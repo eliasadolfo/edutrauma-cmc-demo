@@ -1,0 +1,138 @@
+{
+ "total": {
+  "n": 200,
+  "exito": 86
+ },
+ "tareas": [
+  {
+   "tarea": "T1",
+   "nombre": "Entrar y ver la clase que te toca",
+   "n": 22,
+   "exito": 91,
+   "optimo": 4,
+   "toques_mediana": 4,
+   "lost_mediana": 0.2,
+   "exito_baja": 82,
+   "exito_media": 100,
+   "exito_alta": 100,
+   "abandonos": {
+    "se le acabó la paciencia": 2
+   }
+  },
+  {
+   "tarea": "T2",
+   "nombre": "Terminar las clases, rendir el examen y ver la constancia",
+   "n": 35,
+   "exito": 34,
+   "optimo": 11,
+   "toques_mediana": 12,
+   "lost_mediana": 0.17,
+   "exito_baja": 0,
+   "exito_media": 44,
+   "exito_alta": 57,
+   "abandonos": {
+    "se le acabó la paciencia": 23
+   }
+  },
+  {
+   "tarea": "T3",
+   "nombre": "Saber cuándo vence tu habilitación de seguridad",
+   "n": 22,
+   "exito": 100,
+   "optimo": 2,
+   "toques_mediana": 2,
+   "lost_mediana": 0.33,
+   "exito_baja": 100,
+   "exito_media": 100,
+   "exito_alta": 100,
+   "abandonos": {}
+  },
+  {
+   "tarea": "T4",
+   "nombre": "Pedir apoyo del especialista para un trauma grave",
+   "n": 29,
+   "exito": 97,
+   "optimo": 5,
+   "toques_mediana": 5,
+   "lost_mediana": 0.17,
+   "exito_baja": 86,
+   "exito_media": 100,
+   "exito_alta": 100,
+   "abandonos": {
+    "se le acabó la paciencia": 1
+   }
+  },
+  {
+   "tarea": "T5",
+   "nombre": "Registrar la conducta y cerrar la activación",
+   "n": 37,
+   "exito": 92,
+   "optimo": 7,
+   "toques_mediana": 7,
+   "lost_mediana": 0.13,
+   "exito_baja": 57,
+   "exito_media": 100,
+   "exito_alta": 100,
+   "abandonos": {
+    "se le acabó la paciencia": 3
+   }
+  },
+  {
+   "tarea": "T6",
+   "nombre": "Ver cuánto demoró en entrar el especialista en la última activación",
+   "n": 16,
+   "exito": 100,
+   "optimo": 1,
+   "toques_mediana": 1,
+   "lost_mediana": 0.5,
+   "exito_baja": 100,
+   "exito_media": 100,
+   "exito_alta": 100,
+   "abandonos": {}
+  },
+  {
+   "tarea": "T7",
+   "nombre": "Ver solo lo que pasa en Maturín",
+   "n": 16,
+   "exito": 100,
+   "optimo": 2,
+   "toques_mediana": 2,
+   "lost_mediana": 0.33,
+   "exito_baja": null,
+   "exito_media": 100,
+   "exito_alta": 100,
+   "abandonos": {}
+  },
+  {
+   "tarea": "T8",
+   "nombre": "Saber qué contratista tiene menor cobertura",
+   "n": 23,
+   "exito": 100,
+   "optimo": 1,
+   "toques_mediana": 1,
+   "lost_mediana": 0.5,
+   "exito_baja": 100,
+   "exito_media": 100,
+   "exito_alta": 100,
+   "abandonos": {}
+  }
+ ],
+ "toques_muertos": [
+  [
+   "dirección todas las direccionestraumaneu✗",
+   4
+  ],
+  [
+   "(explora)✗",
+   2
+  ],
+  [
+   "qué es real en este demo y qué está simu✗",
+   1
+  ],
+  [
+   "cerrar✗",
+   1
+  ]
+ ]
+}
