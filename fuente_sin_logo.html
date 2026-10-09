@@ -1,0 +1,620 @@
+<title>Módulo de Conexión</title>
+<style>
+/* Layout: franja de marca navy + pestañas por rol; trabajador y médico viven en un marco de teléfono, gerencia a ancho completo. */
+:root{
+  --navy:#00205C; --navy-deep:#001845; --red:#E02826;
+  --bg:#f6f8fc; --bg2:#eef1f7; --card:#ffffff; --text:#00205C; --muted:#5b6b8c; --line:#dbe1ee; --track:#dde3f0;
+  --ok:#1F7A5C; --ok-soft:#e9f6f1; --ok-line:#bfe3d3;
+  --warn-soft:#fff8ec; --warn-line:#f2dfb3; --warn-text:#7a5b13;
+  --danger:#E02826; --danger-soft:#fdecea; --danger-line:#f0c4bd;
+  --info:#16829e; --info-soft:#e7f4f7; --info-line:#c9e8ee;
+  --on-navy:#ffffff; --on-navy-muted:#b7c3df;
+  --bar:#00205C; --bar-soft:#c9d3ea;
+  --shadow:0 8px 24px rgba(0,32,92,.08);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --r-lg:18px; --r-md:14px; --r-sm:12px; --r-xs:10px;
+  color-scheme:light;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+button,summary,a{touch-action:manipulation}
+body{margin:0;font-family:var(--font);background:var(--bg);color:var(--text);min-height:100%;font-size:15px;line-height:1.45}
+h1,h2,h3{margin:0;text-wrap:balance;line-height:1.2}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+
+/* Franja de marca */
+.strip{background:var(--navy);color:var(--on-navy);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.strip img{height:26px;width:auto;display:block}
+.demo-chip{background:var(--red);color:#fff;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.ribbon{background:var(--navy-deep);border-top:2px solid var(--red);color:var(--on-navy-muted);font-size:.78rem;padding:6px 16px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ribbon b{color:var(--on-navy);font-weight:600}
+
+/* Pestañas de rol */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:8px 16px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-size:.88rem;font-weight:600;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.tab:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--info);outline-offset:2px}
+
+.wrap{max-width:1100px;margin:0 auto;padding-block:18px 40px;padding-inline:16px}
+.view[hidden]{display:none!important}
+
+/* Inicio */
+.hero{display:grid;gap:14px;margin-bottom:18px}
+.hero h1{font-size:1.6rem}
+.hero p.lead{color:var(--muted);max-width:62ch}
+.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.role{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;text-align:left;box-shadow:var(--shadow);display:grid;gap:6px;border-top:4px solid var(--navy)}
+.role.red{border-top-color:var(--red)}
+.role.teal{border-top-color:var(--info)}
+.role .eyebrow{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.role h2{font-size:1.1rem}
+.role p{color:var(--muted);font-size:.9rem}
+.role .go{margin-top:6px;color:var(--info);font-weight:600;font-size:.9rem}
+.note{background:var(--card);border:1px solid var(--line);border-radius:var(--r-xs);padding:12px 14px;font-size:.88rem;color:var(--muted);margin-top:16px}
+.note b{color:var(--text)}
+
+/* Marco de teléfono */
+.phone{max-width:420px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);overflow:hidden;min-height:640px;display:flex;flex-direction:column}
+.phone .bar{background:var(--navy);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.phone .bar .t{font-weight:700;font-size:.95rem}
+.phone .bar .s{font-size:.72rem;color:var(--on-navy-muted)}
+.phone .body{padding:16px;display:grid;gap:12px;align-content:start;flex:1}
+.phone .foot{padding:10px 16px 14px;font-size:.68rem;color:var(--muted);border-top:1px solid var(--line)}
+
+.label{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.field{display:grid;gap:6px}
+.field input,.field select{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card);font-size:1rem}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;padding:12px 16px;border-radius:var(--r-sm);border:1px solid var(--navy);background:var(--navy);color:#fff;font-weight:700;font-size:1rem}
+.btn.sec{background:var(--card);color:var(--text);border-color:var(--line)}
+.btn.danger{background:var(--red);border-color:var(--red);min-height:120px;font-size:1.25rem;border-radius:var(--r-lg);flex-direction:column;gap:4px}
+.btn.danger small{font-weight:500;font-size:.8rem;opacity:.9}
+.btn:disabled{opacity:.5;cursor:default}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);padding:14px;display:grid;gap:8px}
+.card h3{font-size:1rem}
+.card .sub{font-size:.85rem;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:.74rem;font-weight:700;border:1px solid var(--line);color:var(--muted);background:var(--card)}
+.pill.ok{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn-text)}
+.pill.danger{background:var(--danger-soft);border-color:var(--danger-line);color:var(--danger)}
+.pill.info{background:var(--info-soft);border-color:var(--info-line);color:var(--info)}
+.progress{height:8px;background:var(--track);border-radius:999px;overflow:hidden}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--navy),var(--red));border-radius:999px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:9px 14px;font-size:.9rem;font-weight:600;min-height:40px}
+.chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.opt{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 14px;text-align:left;background:var(--card);min-height:52px;font-size:.95rem}
+.opt[aria-pressed="true"]{border-color:var(--navy);box-shadow:inset 0 0 0 1px var(--navy)}
+.opt .k{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:.75rem;font-weight:700;flex-shrink:0}
+.opt[aria-pressed="true"] .k{background:var(--navy);color:#fff;border-color:var(--navy)}
+.lesson{display:grid;gap:10px}
+.lesson ol{margin:0;padding-left:20px;display:grid;gap:6px;font-size:.95rem}
+.videoph{aspect-ratio:16/9;max-width:100%;background:var(--navy-deep);border-radius:var(--r-sm);display:grid;place-items:center;color:#fff;position:relative;overflow:hidden}
+.videoph .play{width:54px;height:54px;border-radius:50%;background:var(--red);display:grid;place-items:center}
+.videoph .play::after{content:"";border-left:16px solid #fff;border-top:10px solid transparent;border-bottom:10px solid transparent;margin-left:4px}
+.videoph .dur{position:absolute;right:10px;bottom:8px;font-size:.74rem;background:rgba(0,0,0,.45);padding:2px 8px;border-radius:999px}
+.cert{border:2px solid var(--navy);border-radius:var(--r-lg);padding:18px;display:grid;gap:8px;text-align:center;background:var(--card)}
+.cert .big{font-size:1.25rem;font-weight:800}
+.cert .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85rem;background:var(--bg);border-radius:8px;padding:6px 10px;display:inline-block}
+.back{background:none;border:0;color:var(--info);font-weight:600;padding:6px 0;text-align:left;font-size:.9rem}
+
+/* Chat simulado y sala */
+.chat{display:grid;gap:8px}
+.msg{max-width:88%;padding:10px 12px;border-radius:14px;font-size:.92rem;background:var(--bg);border:1px solid var(--line)}
+.msg.me{justify-self:end;background:var(--info-soft);border-color:var(--info-line)}
+.msg.sys{justify-self:center;background:transparent;border:0;color:var(--muted);font-size:.78rem;text-align:center;max-width:100%}
+.msg .who{display:block;font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:2px}
+.msg .at{display:block;font-size:.7rem;color:var(--muted);text-align:right;margin-top:3px}
+.room{background:var(--navy-deep);border-radius:var(--r-lg);color:#fff;padding:14px;display:grid;gap:10px;position:relative}
+.room .vid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.room .tile{aspect-ratio:3/4;max-width:100%;border-radius:12px;background:linear-gradient(160deg,#1b3a7a,#0b1d44);display:grid;place-items:center;position:relative;overflow:hidden}
+.room .tile .av{width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.15);display:grid;place-items:center;font-weight:800;font-size:1.1rem}
+.room .tile .nm{position:absolute;left:8px;bottom:6px;font-size:.7rem;background:rgba(0,0,0,.45);padding:2px 8px;border-radius:999px;max-width:calc(100% - 16px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.room .live{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.85rem}
+.room .rec{display:inline-flex;align-items:center;gap:6px}
+.room .rec::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--red);animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.25}}
+@media (prefers-reduced-motion: reduce){.room .rec::before{animation:none}}
+.room .ctl{display:flex;gap:8px}
+.room .ctl button{flex:1;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;padding:8px;font-size:.8rem;font-weight:600}
+.notes{display:grid;gap:6px}
+.notes .n{border-left:3px solid var(--info);padding:6px 10px;background:var(--bg);border-radius:0 8px 8px 0;font-size:.88rem}
+.notes .n b{display:block;font-size:.72rem;color:var(--muted)}
+.notes form{display:flex;gap:8px}
+.notes input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card)}
+.notes button{border-radius:var(--r-sm);border:1px solid var(--navy);background:var(--navy);color:#fff;padding:0 14px;font-weight:700}
+.tramos{display:grid;gap:6px}
+.tramo{display:grid;grid-template-columns:62px 1fr auto;gap:10px;align-items:center;font-size:.9rem}
+.tramo .t{font-weight:800;color:var(--red)}
+.tramo .d{color:var(--muted);font-size:.8rem}
+.tramo.done .t{color:var(--text)}
+
+/* Tablero */
+.dash{display:grid;gap:16px}
+.dash-head{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px}
+.dash-head h1{font-size:1.4rem}
+.dash-head p{color:var(--muted);font-size:.9rem}
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.filters select{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:.88rem}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);padding:14px;display:grid;gap:4px}
+.kpi .v{font-size:1.9rem;font-weight:800;line-height:1}
+.kpi .l{font-size:.78rem;color:var(--muted)}
+.kpi .src{font-size:.7rem;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;display:grid;gap:12px;min-width:0}
+.panel h2{font-size:1.05rem}
+.panel .sub{font-size:.84rem;color:var(--muted)}
+.tablewrap{overflow-x:auto;margin:0 -16px;padding:0 16px}
+table{border-collapse:collapse;width:100%;font-size:.86rem;min-width:620px}
+th{text-align:left;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap}
+tr.live td{background:var(--info-soft)}
+tr:hover td{background:var(--bg)}
+.bars{display:grid;gap:8px}
+.bar-row{display:grid;grid-template-columns:150px 1fr 48px;gap:10px;align-items:center;font-size:.86rem}
+.bar-row .lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-row .tr{height:14px;background:var(--track);border-radius:4px;position:relative}
+.bar-row .tr i{position:absolute;left:0;top:0;bottom:0;background:var(--bar);border-radius:0 4px 4px 0}
+.bar-row .tr .goal{position:absolute;top:-3px;bottom:-3px;width:0;border-left:2px dashed var(--muted)}
+.bar-row .val{text-align:right;font-weight:700}
+.legend{font-size:.76rem;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--bar);vertical-align:-2px;margin-right:4px}
+.legend .g{display:inline-block;width:0;height:12px;border-left:2px dashed var(--muted);vertical-align:-2px;margin-right:6px}
+.list{display:grid;gap:8px}
+.li{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-xs);font-size:.88rem}
+.li .s{font-size:.78rem;color:var(--muted)}
+.guard{display:grid;gap:8px}
+.guard .g{display:grid;grid-template-columns:110px 1fr auto;gap:8px;align-items:center;font-size:.88rem;padding:8px 0;border-bottom:1px solid var(--line)}
+.guard .g:last-child{border-bottom:0}
+.guard .g .d{font-weight:700}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:999px;font-size:.88rem;box-shadow:var(--shadow);z-index:20;max-width:calc(100% - 32px)}
+
+/* Caso Maturín */
+.case{display:grid;gap:16px}
+.timeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.step{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);padding:12px;display:grid;gap:6px;opacity:.45;transition:opacity .3s}
+.step.on{opacity:1;border-color:var(--navy);box-shadow:var(--shadow)}
+.step.cur{border-color:var(--red)}
+.step .t{font-weight:800;color:var(--red);font-size:1.05rem}
+.step h3{font-size:.95rem}
+.step p{font-size:.82rem;color:var(--muted)}
+.step .who{font-size:.72rem;font-weight:700;color:var(--info)}
+.ctl-row{display:flex;gap:8px;flex-wrap:wrap}
+.ctl-row .btn{width:auto;min-height:44px;padding:8px 18px}
+.punch{background:var(--navy);color:#fff;border-radius:var(--r-md);padding:16px;text-align:center;font-weight:700;font-size:1.05rem}
+
+/* Sheet */
+.overlay{position:fixed;inset:0;background:rgba(0,16,46,.5);z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);width:100%;max-width:560px;border-radius:20px 20px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));display:grid;gap:10px;max-height:85vh;overflow:auto}
+.sheet h2{font-size:1.05rem}
+.sheet ul{margin:0;padding-left:18px;display:grid;gap:6px;font-size:.9rem}
+.sheet .close{justify-self:end;background:none;border:0;color:var(--info);font-weight:700}
+footer{max-width:1100px;margin:0 auto;padding:8px 16px 30px;font-size:.72rem;color:var(--muted);text-align:center}
+@media (max-width:480px){.bar-row{grid-template-columns:110px 1fr 44px}.phone{border-radius:20px;min-height:0}}
+</style>
+
+<div class="strip">
+  <img src="__LOGO__" alt="EduTrauma">
+  <span class="demo-chip">Demo</span>
+</div>
+<div class="ribbon"><b>Módulo de Conexión</b><span>Programa de Trauma · Critical Medicine Care</span></div>
+
+<nav class="tabs" role="tablist" aria-label="Rol">
+  <button class="tab" role="tab" data-view="inicio" aria-selected="true">Inicio</button>
+  <button class="tab" role="tab" data-view="trabajador">Trabajador</button>
+  <button class="tab" role="tab" data-view="medico">Médico en terreno</button>
+  <button class="tab" role="tab" data-view="gerencia">Gerencia</button>
+  <button class="tab" role="tab" data-view="caso">Caso Maturín</button>
+</nav>
+
+<div class="wrap">
+
+<!-- ================= INICIO ================= -->
+<section class="view" id="v-inicio">
+  <div class="hero">
+    <h1>Una línea que se activa. Un tablero donde queda todo.</h1>
+    <p class="lead">Tres personas, tres pantallas. Elige un rol y recorre lo que vería cada uno. Al final, el tablero de gerencia muestra lo que acabas de hacer.</p>
+  </div>
+  <div class="roles">
+    <button class="role" data-go="trabajador">
+      <span class="eyebrow">El trabajador</span>
+      <h2>Un curso corto en su teléfono</h2>
+      <p>Entra con su cédula, ve solo los programas que le tocan y recibe su constancia al aprobar.</p>
+      <span class="go">Entrar como trabajador ›</span>
+    </button>
+    <button class="role red" data-go="medico">
+      <span class="eyebrow">El médico en terreno</span>
+      <h2>Un botón para pedir apoyo</h2>
+      <p>Activa la línea, habla con el especialista de guardia viendo al mismo paciente. El registro se arma solo.</p>
+      <span class="go">Activar la línea ›</span>
+    </button>
+    <button class="role teal" data-go="gerencia">
+      <span class="eyebrow">La gerencia</span>
+      <h2>Un tablero con la verdad</h2>
+      <p>Activaciones, cuánto demoró cada tramo, qué porcentaje del personal está entrenado por sede y contratista.</p>
+      <span class="go">Abrir el tablero ›</span>
+    </button>
+    <button class="role" data-go="caso">
+      <span class="eyebrow">Un martes, a las tres de la mañana</span>
+      <h2>El caso de Maturín, de extremo a extremo</h2>
+      <p>Reproduce la activación completa en 30 segundos y mira qué vio cada persona en cada tramo.</p>
+      <span class="go">Reproducir el caso ›</span>
+    </button>
+  </div>
+  <div class="note"><b>Demo con datos ficticios.</b> Las personas, sedes y contratistas son inventados; el flujo, las pantallas y el registro son los reales. <button class="back" id="open-real" type="button">Qué es real en este demo y qué está simulado ›</button></div>
+</section>
+
+<!-- ================= TRABAJADOR ================= -->
+<section class="view" id="v-trabajador" hidden>
+  <div class="phone">
+    <div class="bar"><div><div class="t">Campus CMC</div><div class="s" id="w-sub">Sede Maturín · Faja del Orinoco</div></div><span class="pill info" id="w-pill">Sin sesión</span></div>
+    <div class="body" id="w-body"></div>
+    <div class="foot">Aviso: los contenidos formativos no reemplazan la atención médica. EduTrauma® — Enseñando a salvar vidas.</div>
+  </div>
+</section>
+
+<!-- ================= MÉDICO ================= -->
+<section class="view" id="v-medico" hidden>
+  <div class="phone">
+    <div class="bar"><div><div class="t">Línea de activación</div><div class="s">Dr. Andrés Villalobos · Médico de campo · Maturín</div></div><span class="pill ok" id="m-pill">Guardia activa</span></div>
+    <div class="body" id="m-body"></div>
+    <div class="foot">Si no hay datos, llama al número de respaldo: se desvía solo al especialista de guardia. EduTrauma® — Enseñando a salvar vidas.</div>
+  </div>
+</section>
+
+<!-- ================= GERENCIA ================= -->
+<section class="view" id="v-gerencia" hidden>
+  <div class="dash">
+    <div class="dash-head">
+      <div><h1>Tablero de gerencia médica</h1><p>Critical Medicine Care · seis estados · últimos 30 días · actualizado hoy a las 08:00</p></div>
+      <div class="filters">
+        <select id="f-sede" aria-label="Sede"><option value="">Todas las sedes</option></select>
+        <select id="f-dir" aria-label="Dirección"><option value="">Todas las direcciones</option></select>
+        <button class="chip" id="exportar" type="button">Exportar CSV</button>
+      </div>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <div class="panel">
+      <h2>Activaciones y tiempo por tramo</h2>
+      <p class="sub">Minutos desde que ocurre el evento. Cada hora la pone el sistema, nadie la escribe a mano.</p>
+      <div class="tablewrap"><table id="t-act"><thead><tr><th>#</th><th>Fecha</th><th>Sede</th><th>Dirección</th><th>Nivel</th><th>Se activa</th><th>Entra especialista</th><th>Se decide</th><th>Se resuelve</th><th>Especialista</th><th>Conducta</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <h2>Personal entrenado por sede</h2>
+        <p class="sub">Primer respondiente aprobado y vigente sobre el total de personal cubierto.</p>
+        <div class="bars" id="b-sede"></div>
+        <div class="legend"><span><i></i>Entrenado y vigente</span><span><span class="g"></span>Meta 80 %</span></div>
+      </div>
+      <div class="panel">
+        <h2>Personal entrenado por contratista</h2>
+        <p class="sub">Mismo indicador, visto por empresa contratista.</p>
+        <div class="bars" id="b-contra"></div>
+        <div class="legend"><span><i></i>Entrenado y vigente</span><span><span class="g"></span>Meta 80 %</span></div>
+      </div>
+      <div class="panel">
+        <h2>Habilitaciones por vencer</h2>
+        <p class="sub">Próximos 30 días. Se avisa al trabajador y a su supervisor por WhatsApp.</p>
+        <div class="list" id="vencen"></div>
+      </div>
+      <div class="panel">
+        <h2>Guardias de hoy</h2>
+        <p class="sub">Quién responde la línea por dirección. Lo administra EduTrauma.</p>
+        <div class="guard" id="guardias"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CASO ================= -->
+<section class="view" id="v-caso" hidden>
+  <div class="case">
+    <div><h1 style="font-size:1.4rem">Un martes, a las tres de la mañana</h1><p style="color:var(--muted);margin-top:6px">Maturín. Trabajador con trauma abdominal cerrado tras una caída en plataforma. Así se ve el sistema funcionando.</p></div>
+    <div class="ctl-row"><button class="btn" id="c-play" type="button">▶ Reproducir</button><button class="btn sec" id="c-reset" type="button">Reiniciar</button></div>
+    <div class="timeline" id="c-steps"></div>
+    <div class="punch" id="c-punch">Sin la línea, el especialista podría enterarse al día siguiente. Con la línea, entró a los once minutos.</div>
+    <div class="note">Ejemplo ilustrativo del flujo de trabajo. Los tiempos de respuesta comprometidos se definen en el acuerdo de nivel de servicio.</div>
+  </div>
+</section>
+
+</div>
+
+<footer>Demo con datos ficticios · Capacitaciones Edutrauma SpA · Edutrauma LLC · edutrauma.net</footer>
+
+<div class="overlay" id="sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-t">
+    <h2 id="sheet-t">Qué es real y qué está simulado</h2>
+    <p class="label">Real en este demo</p>
+    <ul>
+      <li>El flujo completo de las tres pantallas y el orden de cada tramo.</li>
+      <li>El registro: lo que haces como médico aparece en el tablero de gerencia, con las horas puestas por el sistema.</li>
+      <li>El campus: cédula como llave, programas por cargo, examen y constancia.</li>
+    </ul>
+    <p class="label">Simulado (se conecta en la siguiente etapa)</p>
+    <ul>
+      <li>La llamada de WhatsApp y la sala de video: aquí son una maqueta; en producción van sobre la línea oficial de WhatsApp con teléfono de respaldo.</li>
+      <li>Los especialistas, trabajadores, sedes y contratistas: nombres y cifras inventados.</li>
+      <li>El aviso por vencimiento y la exportación a CSV.</li>
+    </ul>
+    <button class="close" id="sheet-close" type="button">Cerrar</button>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+function toast(t){var e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(function(){e.remove()},2600)}
+function store(k,v){try{if(v===undefined){var r=localStorage.getItem(k);return r?JSON.parse(r):null}localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
+function pad(n){return (n<10?'0':'')+n}
+function mmss(sec){return pad(Math.floor(sec/60))+':'+pad(sec%60)}
+function hhmm(d){return pad(d.getHours())+':'+pad(d.getMinutes())}
+
+/* ---------- Navegación ---------- */
+var views=['inicio','trabajador','medico','gerencia','caso'];
+function show(v){
+  views.forEach(function(n){$('#v-'+n).hidden=(n!==v)});
+  $$('.tab').forEach(function(t){t.setAttribute('aria-selected',String(t.dataset.view===v))});
+  if(v==='gerencia')renderDash();
+  if(v==='caso')caseReset();
+  window.scrollTo({top:0});
+  try{history.replaceState(null,'','#'+v)}catch(e){}
+}
+$$('.tab').forEach(function(t){t.addEventListener('click',function(){show(t.dataset.view)})});
+$$('[data-go]').forEach(function(b){b.addEventListener('click',function(){show(b.dataset.go)})});
+$('#open-real').addEventListener('click',function(){$('#sheet').hidden=false});
+$('#sheet-close').addEventListener('click',function(){$('#sheet').hidden=true});
+$('#sheet').addEventListener('click',function(e){if(e.target===$('#sheet'))$('#sheet').hidden=true});
+
+/* ---------- Datos ficticios ---------- */
+var SEDES=['Maracaibo','Paraguaná','Valencia','Caracas','Anzoátegui','Maturín'];
+var DIRS=['Trauma','Neurocrítico','Hemodinamia','Quemados'];
+var CONTRAS=['Servicios Orinoco C.A.','Perforaciones del Lago','Logística Faja S.A.','Mantenimiento Industrial Este'];
+var ACT=[
+ {id:139,fecha:'12-sep',sede:'Maracaibo',dir:'Trauma',nivel:'Rojo',ta:5,te:12,td:21,tr:95,esp:'Dr. P. Ottolino',cond:'Traslado a clínica receptora'},
+ {id:140,fecha:'15-sep',sede:'Valencia',dir:'Hemodinamia',nivel:'Rojo',ta:4,te:9,td:16,tr:70,esp:'Dr. R. Salas',cond:'Traslado a centro de mayor complejidad'},
+ {id:141,fecha:'19-sep',sede:'Paraguaná',dir:'Trauma',nivel:'Amarillo',ta:8,te:15,td:24,tr:60,esp:'Dra. C. Briceño',cond:'Manejo en sitio con control'},
+ {id:142,fecha:'23-sep',sede:'Maturín',dir:'Neurocrítico',nivel:'Rojo',ta:6,te:14,td:25,tr:130,esp:'Dra. M. Fernández',cond:'Traslado a clínica receptora'},
+ {id:143,fecha:'27-sep',sede:'Caracas',dir:'Trauma',nivel:'Amarillo',ta:3,te:8,td:14,tr:48,esp:'Dr. P. Ottolino',cond:'Manejo en sitio con control'},
+ {id:144,fecha:'1-oct',sede:'Anzoátegui',dir:'Quemados',nivel:'Rojo',ta:7,te:16,td:28,rr:1,tr:150,esp:'Dr. J. Paredes',cond:'Traslado a centro de mayor complejidad'},
+ {id:145,fecha:'4-oct',sede:'Maturín',dir:'Trauma',nivel:'Rojo',ta:6,te:11,td:19,tr:100,esp:'Dr. P. Ottolino',cond:'Traslado a clínica receptora'},
+ {id:146,fecha:'7-oct',sede:'Maracaibo',dir:'Hemodinamia',nivel:'Amarillo',ta:5,te:10,td:18,tr:55,esp:'Dr. R. Salas',cond:'Manejo en sitio con control'}
+];
+var COV_SEDE={'Maracaibo':74,'Paraguaná':61,'Valencia':83,'Caracas':88,'Anzoátegui':52,'Maturín':68};
+var COV_CONTRA={'Servicios Orinoco C.A.':71,'Perforaciones del Lago':79,'Logística Faja S.A.':58,'Mantenimiento Industrial Este':64};
+var VENCEN=[
+ {n:'Luis Á. Pérez',c:'Logística Faja S.A.',p:'Primer respondiente',d:'14-oct',dias:5},
+ {n:'Yorman Castillo',c:'Servicios Orinoco C.A.',p:'Control de hemorragia',d:'19-oct',dias:10},
+ {n:'Ana K. Rojas',c:'Perforaciones del Lago',p:'Primer respondiente',d:'26-oct',dias:17},
+ {n:'Dr. H. Molina',c:'Clínica receptora Maturín',p:'Manejo del politraumatizado',d:'2-nov',dias:24},
+ {n:'Eduardo Zambrano',c:'Mantenimiento Industrial Este',p:'Inducción seguridad',d:'6-nov',dias:28}
+];
+var GUARD=[
+ {dir:'Trauma',q:'Dr. Pablo Ottolino',desde:'Santiago, Chile',h:'20:00 – 08:00'},
+ {dir:'Neurocrítico',q:'Dra. M. Fernández',desde:'Buenos Aires',h:'20:00 – 08:00'},
+ {dir:'Hemodinamia',q:'Dr. R. Salas',desde:'Valencia, VE',h:'24 h'},
+ {dir:'Quemados',q:'Dr. J. Paredes',desde:'Madrid',h:'14:00 – 02:00'}
+];
+
+/* ---------- TRABAJADOR ---------- */
+var W={step:'login',quiz:[],prog:62};
+var WPROG=[
+ {k:'pr',n:'Primer respondiente en trauma',dur:'45 min',estado:'curso',pct:62},
+ {k:'ch',n:'Control de hemorragia y torniquete',dur:'25 min',estado:'ok',vence:'22-mar-2027'},
+ {k:'in',n:'Inducción de seguridad CMC',dur:'20 min',estado:'vence',vence:'12-nov-2026'}
+];
+var QUIZ=[
+ {q:'Un compañero sangra abundantemente de la pierna. ¿Qué haces primero?',o:['Presión directa firme sobre la herida','Elevar la pierna y esperar','Buscar al supervisor'],a:0},
+ {q:'La presión directa no detiene el sangrado de una extremidad. ¿Qué sigue?',o:['Aflojar y volver a presionar','Aplicar torniquete 5 a 7 cm sobre la herida','Lavar la herida con agua'],a:1},
+ {q:'¿Qué anotas al colocar un torniquete?',o:['El nombre del fabricante','La hora en que lo colocaste','Nada, lo anota el médico'],a:1}
+];
+function wRender(){
+  var b=$('#w-body');var pill=$('#w-pill');
+  if(W.step==='login'){
+    pill.className='pill info';pill.textContent='Sin sesión';
+    b.innerHTML='<div class="card"><h3>Entra con tu cédula</h3><p class="sub">No necesitas correo ni clave. El sistema ya sabe qué programas te tocan según tu cargo y contratista.</p>'+
+    '<form id="w-form" class="field"><label class="label" for="w-ced">Cédula</label><input id="w-ced" inputmode="numeric" value="V-18.456.221" autocomplete="off">'+
+    '<button class="btn" type="submit">Entrar</button></form></div>'+
+    '<div class="card"><h3>Qué vas a ver</h3><p class="sub">Programas asignados, cuánto te falta y tu constancia descargable. Si tu habilitación está por vencer, te avisamos por WhatsApp.</p></div>';
+    $('#w-form').addEventListener('submit',function(e){e.preventDefault();W.step='home';wRender()});
+  } else if(W.step==='home'){
+    pill.className='pill ok';pill.textContent='José Rodríguez';
+    var done=store('cmc_demo_cert');
+    b.innerHTML='<div><h3 style="font-size:1.15rem">Hola, José</h3><p class="sub">Operador de plataforma · Servicios Orinoco C.A. · Sede Maturín</p></div>'+
+    WPROG.map(function(p){
+      var st=p.k==='pr'&&done?{estado:'ok',vence:'9-oct-2027'}:p;
+      var pill2=st.estado==='ok'?'<span class="pill ok">Aprobado · vence '+st.vence+'</span>':st.estado==='vence'?'<span class="pill warn">Vence '+st.vence+'</span>':'<span class="pill info">En curso · '+p.pct+' %</span>';
+      var bar=st.estado==='curso'?'<div class="progress"><i style="width:'+p.pct+'%"></i></div>':'';
+      var cta=p.k==='pr'&&!done?'<button class="btn" data-w="lesson">Continuar lección 4 de 6</button>':p.k==='pr'?'<button class="btn sec" data-w="cert">Ver constancia</button>':'<button class="btn sec" type="button" disabled>Disponible desde el 1 de noviembre</button>';
+      return '<div class="card"><h3>'+esc(p.n)+'</h3><p class="sub">'+p.dur+' · teoría en el teléfono, sin salir de turno</p>'+pill2+bar+cta+'</div>';
+    }).join('');
+    $$('[data-w]',b).forEach(function(x){x.addEventListener('click',function(){W.step=x.dataset.w;wRender()})});
+  } else if(W.step==='lesson'){
+    pill.className='pill info';pill.textContent='Lección 4 de 6';
+    b.innerHTML='<button class="back" data-w="home">‹ Mis programas</button>'+
+    '<div class="lesson"><div class="progress"><i style="width:66%"></i></div>'+
+    '<h3 style="font-size:1.15rem">Control de hemorragia en extremidades</h3>'+
+    '<div class="videoph" role="img" aria-label="Video de la lección, 3 minutos"><div class="play"></div><span class="dur">3:10</span></div>'+
+    '<p class="sub">Lo que haces en los primeros dos minutos decide más que la ambulancia. Tres pasos, en este orden:</p>'+
+    '<ol><li><b>Presión directa</b> firme y sostenida sobre la herida, con gasa o lo que tengas.</li><li>Si no cede, <b>torniquete</b> 5 a 7 cm por encima de la herida, nunca sobre una articulación.</li><li><b>Anota la hora</b> en el torniquete o en la piel y activa la línea.</li></ol>'+
+    '<button class="btn" data-w="quiz">Ir al examen · 3 preguntas</button></div>';
+    $$('[data-w]',b).forEach(function(x){x.addEventListener('click',function(){W.step=x.dataset.w;W.quiz=[];wRender()})});
+  } else if(W.step==='quiz'){
+    var i=W.quiz.length;
+    if(i>=QUIZ.length){W.step='result';return wRender()}
+    pill.className='pill info';pill.textContent='Pregunta '+(i+1)+' de 3';
+    var q=QUIZ[i];
+    b.innerHTML='<div class="progress"><i style="width:'+((i)/3*100)+'%"></i></div><div class="card"><h3>'+esc(q.q)+'</h3></div>'+
+    q.o.map(function(o,j){return '<button class="opt" data-a="'+j+'" aria-pressed="false"><span class="k">'+String.fromCharCode(65+j)+'</span><span>'+esc(o)+'</span></button>'}).join('');
+    $$('.opt',b).forEach(function(x){x.addEventListener('click',function(){W.quiz.push(+x.dataset.a===QUIZ[i].a);wRender()})});
+  } else if(W.step==='result'){
+    var ok=W.quiz.filter(Boolean).length;var pct=Math.round(ok/3*100);var pass=pct>=80;
+    pill.className='pill '+(pass?'ok':'warn');pill.textContent=pct+' %';
+    if(pass)store('cmc_demo_cert',{at:new Date().toISOString()});
+    b.innerHTML='<div class="card"><h3 style="font-size:1.15rem">'+(pass?'Aprobado':'Aún no')+'</h3><p class="sub">'+ok+' de 3 correctas. Se aprueba con 80 % o más.</p>'+
+    (pass?'<p class="sub">Tu constancia ya está emitida y tu supervisor la ve en el tablero de CMC.</p><button class="btn" data-w="cert">Ver mi constancia</button>':'<p class="sub">Puedes repasar la lección y volver a intentarlo cuando quieras.</p><button class="btn" data-w="lesson">Repasar la lección</button>')+
+    '</div>';
+    $$('[data-w]',b).forEach(function(x){x.addEventListener('click',function(){W.step=x.dataset.w;W.quiz=[];wRender()})});
+  } else if(W.step==='cert'){
+    pill.className='pill ok';pill.textContent='Vigente';
+    var d=new Date();
+    b.innerHTML='<button class="back" data-w="home">‹ Mis programas</button>'+
+    '<div class="cert"><span class="label">Constancia de aprobación</span><div class="big">Primer respondiente en trauma</div><p>José Rodríguez · V-18.456.221</p><p class="sub">Servicios Orinoco C.A. · Sede Maturín</p>'+
+    '<p class="sub">Emitida el '+pad(d.getDate())+'-'+pad(d.getMonth()+1)+'-'+d.getFullYear()+' · vigente 12 meses</p><span class="code">CMC-PR-2026-'+pad(d.getDate())+pad(d.getMonth()+1)+'-0417</span>'+
+    '<p class="sub">Programa de Trauma · Critical Medicine Care · EduTrauma</p></div>'+
+    '<button class="btn sec" type="button" id="w-share">Enviar a mi WhatsApp</button>';
+    $$('[data-w]',b).forEach(function(x){x.addEventListener('click',function(){W.step=x.dataset.w;wRender()})});
+    $('#w-share').addEventListener('click',function(){toast('Constancia enviada a tu WhatsApp (simulado)')});
+  }
+}
+wRender();
+
+/* ---------- MÉDICO EN TERRENO ---------- */
+var M={step:'idle',dir:null,nivel:null,mec:[],t0:null,marks:{},notes:[],timer:null,cond:null};
+var MEC=['Caída de altura','Aplastamiento','Explosión','Vehículo','Herida penetrante','Quemadura'];
+function elapsed(){return M.t0?Math.floor((Date.now()-M.t0)/1000):0}
+function mark(k){if(!M.marks[k])M.marks[k]=elapsed()}
+function mRender(){
+  var b=$('#m-body');var pill=$('#m-pill');
+  if(M.timer){clearInterval(M.timer);M.timer=null}
+  if(M.step==='idle'){
+    pill.className='pill ok';pill.textContent='Guardia activa';
+    b.innerHTML='<p class="sub">Un solo botón. Sin formularios. El especialista de guardia de la dirección que elijas entra en minutos.</p>'+
+    '<button class="btn danger" id="m-go" type="button">ACTIVAR LÍNEA<small>Cirujano de trauma de guardia: Dr. P. Ottolino</small></button>'+
+    '<div class="card"><h3>Guardias ahora</h3>'+GUARD.map(function(g){return '<div style="display:flex;justify-content:space-between;gap:8px;font-size:.88rem"><span><b>'+g.dir+'</b> · '+esc(g.q)+'</span><span class="pill ok">en línea</span></div>'}).join('')+'</div>'+
+    '<div class="card"><h3>Respaldo sin datos</h3><p class="sub">Número de respaldo: <b class="num">+58 291 000 0000</b> (ficticio). Suena directo al especialista de guardia y queda registrado igual.</p></div>';
+    $('#m-go').addEventListener('click',function(){M.step='triage';M.t0=Date.now();M.marks={};M.notes=[];M.dir=null;M.nivel=null;M.mec=[];M.cond=null;mRender()});
+  } else if(M.step==='triage'){
+    pill.className='pill danger';pill.textContent='Activando';
+    b.innerHTML='<div class="card"><h3>¿Qué dirección necesitas?</h3><div class="chips" id="m-dir">'+DIRS.map(function(d){return '<button class="chip" type="button" aria-pressed="'+(M.dir===d)+'">'+d+'</button>'}).join('')+'</div></div>'+
+    '<div class="card"><h3>Nivel</h3><div class="chips" id="m-niv"><button class="chip" type="button" aria-pressed="'+(M.nivel==='Rojo')+'">Rojo · riesgo vital</button><button class="chip" type="button" aria-pressed="'+(M.nivel==='Amarillo')+'">Amarillo · grave estable</button></div></div>'+
+    '<div class="card"><h3>Mecanismo</h3><div class="chips" id="m-mec">'+MEC.map(function(d){return '<button class="chip" type="button" aria-pressed="'+(M.mec.indexOf(d)>=0)+'">'+d+'</button>'}).join('')+'</div></div>'+
+    '<p class="sub">Sede: <b>Maturín · Plataforma PM-14</b> (la toma del teléfono). Paciente: trabajador, hombre, ~35 años.</p>'+
+    '<button class="btn" id="m-send" type="button" '+(M.dir&&M.nivel?'':'disabled')+'>Conectar con el especialista</button>';
+    $$('#m-dir .chip',b).forEach(function(x){x.addEventListener('click',function(){M.dir=x.textContent;mRender()})});
+    $$('#m-niv .chip',b).forEach(function(x){x.addEventListener('click',function(){M.nivel=x.textContent.indexOf('Rojo')===0?'Rojo':'Amarillo';mRender()})});
+    $$('#m-mec .chip',b).forEach(function(x){x.addEventListener('click',function(){var i=M.mec.indexOf(x.textContent);if(i>=0)M.mec.splice(i,1);else M.mec.push(x.textContent);mRender()})});
+    $('#m-send').addEventListener('click',function(){mark('activa');M.step='connecting';mRender()});
+  } else if(M.step==='connecting'){
+    pill.className='pill danger';pill.textContent='Conectando';
+    var esp=GUARD.filter(function(g){return g.dir===M.dir})[0];
+    var now=new Date();
+    b.innerHTML='<div class="chat" id="m-chat">'+
+    '<div class="msg sys">Activación #0147 · '+hhmm(now)+' · WhatsApp línea CMC</div>'+
+    '<div class="msg me"><span class="who">Dr. A. Villalobos · Maturín</span>'+esc(M.dir)+' · <b>'+esc(M.nivel)+'</b> · '+esc(M.mec.join(', ')||'mecanismo por confirmar')+'<span class="at">'+hhmm(now)+' ✓✓</span></div>'+
+    '</div><div class="card"><h3 id="m-wait">Avisando a '+esc(esp.q)+'…</h3><p class="sub">Si no confirma en 3 minutos, la línea escala a la segunda guardia de '+esc(M.dir)+' y avisa a la coordinación.</p><div class="progress"><i id="m-prog" style="width:5%"></i></div></div>';
+    var chat=$('#m-chat');var prog=$('#m-prog');var p=5;
+    M.timer=setInterval(function(){p=Math.min(100,p+9);prog.style.width=p+'%'},300);
+    setTimeout(function(){var d=document.createElement('div');d.className='msg';d.innerHTML='<span class="who">Línea CMC</span>'+esc(esp.q)+' confirmó. Abriendo sala de video.<span class="at">'+hhmm(new Date())+'</span>';chat.appendChild(d);$('#m-wait').textContent='Confirmado. Entrando a la sala…'},2200);
+    setTimeout(function(){if(M.step==='connecting'){mark('especialista');M.step='room';mRender()}},3600);
+  } else if(M.step==='room'){
+    pill.className='pill danger';pill.textContent='En sala';
+    var esp2=GUARD.filter(function(g){return g.dir===M.dir})[0];
+    b.innerHTML='<div class="room"><div class="live"><span class="rec">EN VIVO · <span class="num" id="m-clock">00:00</span></span><span>'+esc(M.nivel)+' · '+esc(M.dir)+'</span></div>'+
+    '<div class="vid"><div class="tile"><div class="av">AV</div><span class="nm">Dr. Villalobos · terreno</span></div><div class="tile"><div class="av">'+esc(esp2.q.split(' ').slice(-1)[0].slice(0,2).toUpperCase())+'</div><span class="nm">'+esc(esp2.q)+' · '+esc(esp2.desde)+'</span></div></div>'+
+    '<div class="ctl"><button type="button" id="m-audio">Solo audio</button><button type="button" id="m-photo">Enviar foto</button><button type="button" id="m-add">Sumar a alguien</button></div></div>'+
+    '<div class="notes"><span class="label">Registro de la activación · se arma solo</span><div id="m-notes"></div><form id="m-nf"><input id="m-ni" placeholder="Nota rápida (ej. TA 90/60, FAST+)" autocomplete="off"><button type="submit">Anotar</button></form></div>'+
+    '<div class="card"><h3>Conducta acordada</h3><div class="chips" id="m-cond"><button class="chip" type="button">Traslado a clínica receptora</button><button class="chip" type="button">Manejo en sitio con control</button><button class="chip" type="button">Traslado a centro de mayor complejidad</button></div></div>';
+    var clock=$('#m-clock');M.timer=setInterval(function(){clock.textContent=mmss(elapsed())},1000);clock.textContent=mmss(elapsed());
+    function addNote(who,txt){M.notes.push({who:who,t:elapsed(),txt:txt});renderNotes()}
+    function renderNotes(){$('#m-notes').innerHTML=M.notes.map(function(n){return '<div class="n"><b>'+mmss(n.t)+' · '+esc(n.who)+'</b>'+esc(n.txt)+'</div>'}).join('')}
+    if(!M.notes.length){addNote('Sistema','Activación #0147 · '+M.dir+' '+M.nivel+' · Maturín PM-14 · '+(M.mec.join(', ')||'mecanismo por confirmar'));addNote('Sistema',esp2.q+' entró a la sala a los '+mmss(M.marks.especialista||0)+' de la activación')}
+    renderNotes();
+    $('#m-nf').addEventListener('submit',function(e){e.preventDefault();var v=$('#m-ni').value.trim();if(!v)return;addNote('Dr. Villalobos',v);$('#m-ni').value=''});
+    $('#m-audio').addEventListener('click',function(){addNote('Sistema','Cambio a solo audio por señal débil. La activación sigue abierta.');toast('Modo solo audio')});
+    $('#m-photo').addEventListener('click',function(){addNote('Dr. Villalobos','Foto de abdomen enviada (equimosis flanco izq.)');toast('Foto adjuntada al registro')});
+    $('#m-add').addEventListener('click',function(){addNote('Sistema','Clínica receptora Maturín sumada a la sala (Dr. H. Molina)');toast('Clínica receptora en la sala')});
+    $$('#m-cond .chip',b).forEach(function(x){x.addEventListener('click',function(){M.cond=x.textContent;mark('decide');addNote(esp2.q,'Conducta: '+M.cond+'. Clínica receptora avisada, pabellón en preparación.');M.step='closing';setTimeout(mRender,900)})});
+  } else if(M.step==='closing'){
+    pill.className='pill warn';pill.textContent='Decidido';
+    var esp3=GUARD.filter(function(g){return g.dir===M.dir})[0];
+    b.innerHTML='<div class="card"><h3>Conducta acordada</h3><p>'+esc(M.cond)+'</p><p class="sub">Clínica receptora Maturín avisada. Pabellón y equipo preparándose antes de que el paciente salga.</p></div>'+
+    '<div class="tramos">'+
+    '<div class="tramo done"><span class="t num">00:00</span><span>Ocurre</span><span class="d">compañero aplicó control de hemorragia</span></div>'+
+    '<div class="tramo done"><span class="t num">'+mmss(M.marks.activa||0)+'</span><span>Se activa</span><span class="d">Dr. Villalobos</span></div>'+
+    '<div class="tramo done"><span class="t num">'+mmss(M.marks.especialista||0)+'</span><span>Entra el especialista</span><span class="d">'+esc(esp3.q)+'</span></div>'+
+    '<div class="tramo done"><span class="t num">'+mmss(M.marks.decide||0)+'</span><span>Se decide</span><span class="d">'+esc(M.cond)+'</span></div>'+
+    '<div class="tramo"><span class="t num">—</span><span>Se resuelve</span><span class="d">pendiente</span></div></div>'+
+    '<button class="btn" id="m-close" type="button">Paciente entregado · cerrar activación</button>';
+    $('#m-close').addEventListener('click',function(){mark('resuelve');M.step='done';saveActivation();mRender()});
+  } else if(M.step==='done'){
+    pill.className='pill ok';pill.textContent='Cerrada';
+    b.innerHTML='<div class="card"><h3 style="font-size:1.15rem">Activación #0147 cerrada</h3><p class="sub">Quedó registrada con la hora de cada tramo, quién intervino y qué se resolvió. Ya está en el tablero de gerencia.</p>'+
+    '<button class="btn" data-go="gerencia">Ver en el tablero</button><button class="btn sec" id="m-again" type="button">Nueva activación</button></div>';
+    $$('[data-go]',b).forEach(function(x){x.addEventListener('click',function(){show(x.dataset.go)})});
+    $('#m-again').addEventListener('click',function(){M.step='idle';mRender()});
+  }
+}
+function saveActivation(){
+  var esp=GUARD.filter(function(g){return g.dir===M.dir})[0];
+  var d=new Date();var min=function(k){return Math.max(1,Math.round((M.marks[k]||0)/60))};
+  var sec=function(k){return M.marks[k]||0};
+  var rec={id:147,fecha:d.getDate()+'-'+['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][d.getMonth()],sede:'Maturín',dir:M.dir,nivel:M.nivel,ta:min('activa'),te:min('especialista'),td:min('decide'),tr:min('resuelve'),esp:esp.q,cond:M.cond,live:true,secs:{ta:sec('activa'),te:sec('especialista'),td:sec('decide'),tr:sec('resuelve')}};
+  store('cmc_demo_act',rec);
+}
+mRender();
+
+/* ---------- GERENCIA ---------- */
+var fs=$('#f-sede'),fd=$('#f-dir');
+SEDES.forEach(function(s){var o=document.createElement('option');o.value=s;o.textContent=s;fs.appendChild(o)});
+DIRS.forEach(function(s){var o=document.createElement('option');o.value=s;o.textContent=s;fd.appendChild(o)});
+fs.addEventListener('change',renderDash);fd.addEventListener('change',renderDash);
+$('#exportar').addEventListener('click',function(){toast('CSV listo: activaciones_cmc_30d.csv (simulado)')});
+function fmtMin(r,k){if(r.live&&r.secs){var s=r.secs[k];return s<60?s+' s':mmss(s)+' min'}return r[k]+' min'}
+function median(a){if(!a.length)return 0;var s=a.slice().sort(function(x,y){return x-y});var m=Math.floor(s.length/2);return s.length%2?s[m]:Math.round((s[m-1]+s[m])/2)}
+function renderDash(){
+  var live=store('cmc_demo_act');
+  var all=ACT.slice();if(live)all.push(live);
+  var rows=all.filter(function(r){return (!fs.value||r.sede===fs.value)&&(!fd.value||r.dir===fd.value)});
+  var cov=fs.value?COV_SEDE[fs.value]:68;
+  var med=median(rows.filter(function(r){return !r.live}).map(function(r){return r.te}));
+  var vencen=fs.value&&fs.value!=='Maturín'?Math.max(2,Math.round(VENCEN.length*0.6)):VENCEN.length;
+  $('#kpis').innerHTML=
+   '<div class="kpi"><span class="v num">'+rows.length+'</span><span class="l">Activaciones en 30 días</span><span class="src">'+(live&&(!fs.value||fs.value==='Maturín')&&(!fd.value||fd.value===live.dir)?'incluye la que acabas de hacer':'registro de la línea')+'</span></div>'+
+   '<div class="kpi"><span class="v num">'+(med||'—')+'<small style="font-size:.9rem;font-weight:600"> min</small></span><span class="l">Mediana hasta que entra el especialista</span><span class="src">hora puesta por el sistema</span></div>'+
+   '<div class="kpi"><span class="v num">'+cov+' %</span><span class="l">Personal entrenado y vigente</span><span class="src">campus · meta 80 %</span></div>'+
+   '<div class="kpi"><span class="v num">'+vencen+'</span><span class="l">Habilitaciones por vencer en 30 días</span><span class="src">aviso automático por WhatsApp</span></div>';
+  $('#t-act tbody').innerHTML=rows.slice().reverse().map(function(r){
+    var pill=r.nivel==='Rojo'?'<span class="pill danger">Rojo</span>':'<span class="pill warn">Amarillo</span>';
+    return '<tr'+(r.live?' class="live"':'')+'><td class="num">'+r.id+(r.live?' <span class="pill info">ahora</span>':'')+'</td><td>'+esc(r.fecha)+'</td><td>'+esc(r.sede)+'</td><td>'+esc(r.dir)+'</td><td>'+pill+'</td><td class="num">'+fmtMin(r,'ta')+'</td><td class="num">'+fmtMin(r,'te')+'</td><td class="num">'+fmtMin(r,'td')+'</td><td class="num">'+fmtMin(r,'tr')+'</td><td>'+esc(r.esp)+'</td><td>'+esc(r.cond)+'</td></tr>';
+  }).join('')||'<tr><td colspan="11" style="white-space:normal;color:var(--muted)">Sin activaciones con ese filtro.</td></tr>';
+  function bars(obj){return Object.keys(obj).map(function(k){return '<div class="bar-row"><span class="lab" title="'+esc(k)+'">'+esc(k)+'</span><span class="tr"><i style="width:'+obj[k]+'%"></i><span class="goal" style="left:80%"></span></span><span class="val num">'+obj[k]+' %</span></div>'}).join('')}
+  $('#b-sede').innerHTML=bars(fs.value?(function(){var o={};o[fs.value]=COV_SEDE[fs.value];return o})():COV_SEDE);
+  $('#b-contra').innerHTML=bars(COV_CONTRA);
+  $('#vencen').innerHTML=VENCEN.slice(0,vencen).map(function(v){return '<div class="li"><div><b>'+esc(v.n)+'</b><div class="s">'+esc(v.c)+' · '+esc(v.p)+'</div></div><span class="pill '+(v.dias<=10?'danger':'warn')+'">'+v.d+' · '+v.dias+' d</span></div>'}).join('');
+  $('#guardias').innerHTML=GUARD.map(function(g){return '<div class="g"><span class="d">'+g.dir+'</span><span>'+esc(g.q)+' <span class="s" style="color:var(--muted);font-size:.78rem">· '+esc(g.desde)+'</span></span><span class="pill ok">'+g.h+'</span></div>'}).join('');
+}
+
+/* ---------- CASO MATURÍN ---------- */
+var STEPS=[
+ {t:'00:00',h:'Ocurre',who:'Trabajador',p:'El compañero más cercano aplica control de hemorragia. Lo aprendió en el campus tres meses antes.'},
+ {t:'00:06',h:'Se activa',who:'Médico en terreno',p:'El médico de campo toca el botón, clasifica Rojo y la línea avisa al cirujano de trauma de guardia.'},
+ {t:'00:11',h:'Entra el especialista',who:'Especialista remoto',p:'El cirujano de guardia se conecta desde Chile, ve al paciente y evalúa junto al médico que está ahí.'},
+ {t:'00:19',h:'Se decide',who:'Ambos',p:'Conducta acordada. Se activa la clínica receptora, que prepara pabellón antes de que el paciente salga.'},
+ {t:'01:40',h:'Se resuelve',who:'Clínica receptora',p:'El paciente entra a pabellón con el equipo esperándolo y el caso ya conocido.'},
+ {t:'—',h:'Queda el registro',who:'Gerencia',p:'Hora de cada tramo, quién intervino y qué se resolvió. Disponible para la auditoría de la operadora.'}
+];
+var C={i:-1,timer:null};
+function caseRender(){$('#c-steps').innerHTML=STEPS.map(function(s,i){return '<div class="step'+(i<=C.i?' on':'')+(i===C.i?' cur':'')+'"><span class="t num">'+s.t+'</span><h3>'+s.h+'</h3><span class="who">'+s.who+'</span><p>'+s.p+'</p></div>'}).join('')}
+function caseReset(){if(C.timer){clearInterval(C.timer);C.timer=null}C.i=-1;caseRender();$('#c-play').textContent='▶ Reproducir'}
+function casePlay(){
+  if(C.timer){clearInterval(C.timer);C.timer=null;$('#c-play').textContent='▶ Continuar';return}
+  if(C.i>=STEPS.length-1)C.i=-1;
+  $('#c-play').textContent='❚❚ Pausa';
+  var tick=function(){C.i++;caseRender();if(C.i>=STEPS.length-1){clearInterval(C.timer);C.timer=null;$('#c-play').textContent='▶ Reproducir de nuevo'}};
+  tick();C.timer=setInterval(tick,2600);
+}
+$('#c-play').addEventListener('click',casePlay);$('#c-reset').addEventListener('click',caseReset);
+caseRender();
+
+/* arranque */
+var h=(location.hash||'').replace('#','');
+show(views.indexOf(h)>=0?h:'inicio');
+})();
+</script>
