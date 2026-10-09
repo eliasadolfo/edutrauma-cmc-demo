@@ -111,6 +111,33 @@ input,select{font:inherit;color:inherit}
 .cert .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85rem;background:var(--bg);border-radius:8px;padding:6px 10px;display:inline-block}
 .back{background:none;border:0;color:var(--info);font-weight:600;padding:6px 0;text-align:left;font-size:.9rem}
 
+
+/* Guía de pasos dentro del teléfono */
+.steps{display:flex;gap:4px;padding:8px 12px;background:var(--bg);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.steps::-webkit-scrollbar{display:none}
+.steps span{flex:1 0 auto;font-size:.68rem;font-weight:700;color:var(--muted);padding:4px 8px;border-radius:999px;white-space:nowrap;text-align:center}
+.steps span.on{background:var(--navy);color:#fff}
+.steps span.done{color:var(--ok)}
+/* Temario */
+.syllabus{display:grid;gap:8px}
+.cl{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;background:var(--card);text-align:left;min-height:56px}
+.cl .n{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.85rem;border:1px solid var(--line);color:var(--muted)}
+.cl.done .n{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok)}
+.cl.cur .n{background:var(--navy);border-color:var(--navy);color:#fff}
+.cl.cur{border-color:var(--navy);box-shadow:inset 0 0 0 1px var(--navy)}
+.cl.lock{opacity:.55}
+.cl .ti{font-weight:700;font-size:.92rem}
+.cl .du{font-size:.76rem;color:var(--muted)}
+.cl .st{font-size:.72rem;font-weight:700;color:var(--muted);white-space:nowrap}
+.cl.done .st{color:var(--ok)}
+.cl.cur .st{color:var(--navy)}
+.kp{display:grid;gap:8px}
+.kp div{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:start;font-size:.92rem}
+.kp b{width:26px;height:26px;border-radius:50%;background:var(--info-soft);color:var(--info);display:grid;place-items:center;font-size:.75rem}
+.home-tabs{display:flex;gap:6px}
+.home-tabs button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px;font-size:.85rem;font-weight:700;color:var(--muted)}
+.home-tabs button[aria-selected="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+
 /* Chat simulado y sala */
 .chat{display:grid;gap:8px}
 .msg{max-width:88%;padding:10px 12px;border-radius:14px;font-size:.92rem;background:var(--bg);border:1px solid var(--line)}
@@ -233,7 +260,7 @@ footer{max-width:1100px;margin:0 auto;padding:8px 16px 30px;font-size:.72rem;col
     <button class="role" data-go="trabajador">
       <span class="eyebrow">El trabajador</span>
       <h2>Un curso corto en su teléfono</h2>
-      <p>Entra con su cédula, ve solo los programas que le tocan y recibe su constancia al aprobar.</p>
+      <p>Entra con su cédula, ve sus programas con las clases de cada uno, rinde el examen y recibe su constancia.</p>
       <span class="go">Entrar como trabajador ›</span>
     </button>
     <button class="role red" data-go="medico">
@@ -262,6 +289,7 @@ footer{max-width:1100px;margin:0 auto;padding:8px 16px 30px;font-size:.72rem;col
 <section class="view" id="v-trabajador" hidden>
   <div class="phone">
     <div class="bar"><div><div class="t">Campus CMC</div><div class="s" id="w-sub">Sede Maturín · Faja del Orinoco</div></div><span class="pill info" id="w-pill">Sin sesión</span></div>
+    <div class="steps" id="w-steps"></div>
     <div class="body" id="w-body"></div>
     <div class="foot">Aviso: los contenidos formativos no reemplazan la atención médica. EduTrauma® — Enseñando a salvar vidas.</div>
   </div>
@@ -271,6 +299,7 @@ footer{max-width:1100px;margin:0 auto;padding:8px 16px 30px;font-size:.72rem;col
 <section class="view" id="v-medico" hidden>
   <div class="phone">
     <div class="bar"><div><div class="t">Línea de activación</div><div class="s">Dr. Andrés Villalobos · Médico de campo · Maturín</div></div><span class="pill ok" id="m-pill">Guardia activa</span></div>
+    <div class="steps" id="m-steps"></div>
     <div class="body" id="m-body"></div>
     <div class="foot">Si no hay datos, llama al número de respaldo: se desvía solo al especialista de guardia. EduTrauma® — Enseñando a salvar vidas.</div>
   </div>
@@ -413,62 +442,95 @@ var GUARD=[
 ];
 
 /* ---------- TRABAJADOR ---------- */
-var W={step:'login',quiz:[],prog:62};
-var WPROG=[
- {k:'pr',n:'Primer respondiente en trauma',dur:'45 min',estado:'curso',pct:62},
- {k:'ch',n:'Control de hemorragia y torniquete',dur:'25 min',estado:'ok',vence:'22-mar-2027'},
- {k:'in',n:'Inducción de seguridad CMC',dur:'20 min',estado:'vence',vence:'12-nov-2026'}
+var CLASES=[
+ {n:1,t:'Qué pasa en los primeros minutos',d:'6 min',pts:['El desenlace se decide antes de que llegue cualquier equipo médico.','Tu tarea no es curar: es ganar tiempo y avisar bien.','Tres cosas que hacer, en orden, siempre las mismas.']},
+ {n:2,t:'Cómo activar la línea y qué decir',d:'5 min',pts:['Quién activa: el médico de campo o el supervisor de turno.','Qué decir: dónde, cuántos, qué pasó, qué ves.','Qué no hacer: no mover al herido sin indicación.']},
+ {n:3,t:'Seguridad de la escena y del compañero',d:'7 min',pts:['Primero tú, después el herido: energía, altura, gases.','Pide ayuda antes de acercarte, no después.','Guantes y kit de primer respondiente siempre a mano.']},
+ {n:4,t:'Control de hemorragia: presión y torniquete',d:'8 min',pts:['Presión directa firme y sostenida sobre la herida.','Si no cede, torniquete 5 a 7 cm por encima, nunca sobre una articulación.','Anota la hora en el torniquete y activa la línea.']},
+ {n:5,t:'Posición, abrigo y qué no hacer',d:'6 min',pts:['Mantén al herido abrigado: el frío empeora el sangrado.','No des agua ni comida; no retires objetos clavados.','Quédate con él y habla: tú eres sus ojos para el médico.']},
+ {n:6,t:'Entrega al médico en terreno',d:'5 min',pts:['Qué pasó, qué hiciste y a qué hora: tres frases.','Muestra el torniquete y la hora anotada.','Tu registro entra al mismo expediente de la activación.']}
 ];
 var QUIZ=[
  {q:'Un compañero sangra abundantemente de la pierna. ¿Qué haces primero?',o:['Presión directa firme sobre la herida','Elevar la pierna y esperar','Buscar al supervisor'],a:0},
  {q:'La presión directa no detiene el sangrado de una extremidad. ¿Qué sigue?',o:['Aflojar y volver a presionar','Aplicar torniquete 5 a 7 cm sobre la herida','Lavar la herida con agua'],a:1},
  {q:'¿Qué anotas al colocar un torniquete?',o:['El nombre del fabricante','La hora en que lo colocaste','Nada, lo anota el médico'],a:1}
 ];
+var W={step:'login',tab:'cursos',done:3,quiz:[],cur:null};
+var WSTEPS=[['login','Cédula'],['home','Mis programas'],['program','Clases'],['quiz','Examen'],['cert','Constancia']];
+function wSteps(){
+  var order=['login','home','program','quiz','cert'];
+  var cur=W.step==='lesson'?'program':W.step==='result'?'quiz':W.step;
+  var ci=order.indexOf(cur);
+  $('#w-steps').innerHTML=WSTEPS.map(function(x,i){return '<span class="'+(i<ci?'done':i===ci?'on':'')+'">'+(i<ci?'✓ ':'')+x[1]+'</span>'}).join('');
+}
 function wRender(){
-  var b=$('#w-body');var pill=$('#w-pill');
+  var b=$('#w-body');var pill=$('#w-pill');wSteps();
+  var cert=store('cmc_demo_cert');
   if(W.step==='login'){
     pill.className='pill info';pill.textContent='Sin sesión';
-    b.innerHTML='<div class="card"><h3>Entra con tu cédula</h3><p class="sub">No necesitas correo ni clave. El sistema ya sabe qué programas te tocan según tu cargo y contratista.</p>'+
+    b.innerHTML='<div class="card"><h3>Entra con tu cédula</h3><p class="sub">Sin correo ni clave. El campus ya sabe qué programas te tocan por tu cargo y tu contratista.</p>'+
     '<form id="w-form" class="field"><label class="label" for="w-ced">Cédula</label><input id="w-ced" inputmode="numeric" value="V-18.456.221" autocomplete="off">'+
     '<button class="btn" type="submit">Entrar</button></form></div>'+
-    '<div class="card"><h3>Qué vas a ver</h3><p class="sub">Programas asignados, cuánto te falta y tu constancia descargable. Si tu habilitación está por vencer, te avisamos por WhatsApp.</p></div>';
+    '<div class="card"><h3>Qué vas a encontrar</h3><p class="sub">Tus programas, las clases de cada uno (cortas, para verlas en el turno), el examen y tu constancia. Si una habilitación está por vencer, te avisamos por WhatsApp.</p></div>';
     $('#w-form').addEventListener('submit',function(e){e.preventDefault();W.step='home';wRender()});
   } else if(W.step==='home'){
     pill.className='pill ok';pill.textContent='José Rodríguez';
-    var done=store('cmc_demo_cert');
-    b.innerHTML='<div><h3 style="font-size:1.15rem">Hola, José</h3><p class="sub">Operador de plataforma · Servicios Orinoco C.A. · Sede Maturín</p></div>'+
-    WPROG.map(function(p){
-      var st=p.k==='pr'&&done?{estado:'ok',vence:'9-oct-2027'}:p;
-      var pill2=st.estado==='ok'?'<span class="pill ok">Aprobado · vence '+st.vence+'</span>':st.estado==='vence'?'<span class="pill warn">Vence '+st.vence+'</span>':'<span class="pill info">En curso · '+p.pct+' %</span>';
-      var bar=st.estado==='curso'?'<div class="progress"><i style="width:'+p.pct+'%"></i></div>':'';
-      var cta=p.k==='pr'&&!done?'<button class="btn" data-w="lesson">Continuar lección 4 de 6</button>':p.k==='pr'?'<button class="btn sec" data-w="cert">Ver constancia</button>':'<button class="btn sec" type="button" disabled>Disponible desde el 1 de noviembre</button>';
-      return '<div class="card"><h3>'+esc(p.n)+'</h3><p class="sub">'+p.dur+' · teoría en el teléfono, sin salir de turno</p>'+pill2+bar+cta+'</div>';
-    }).join('');
+    var prDone=!!cert;
+    var html='<div><h3 style="font-size:1.15rem">Hola, José</h3><p class="sub">Operador de plataforma · Servicios Orinoco C.A. · Sede Maturín</p></div>'+
+    '<div class="home-tabs"><button type="button" data-tab="cursos" aria-selected="'+(W.tab==='cursos')+'">Mis programas</button><button type="button" data-tab="const" aria-selected="'+(W.tab==='const')+'">Mis constancias</button></div>';
+    if(W.tab==='cursos'){
+      html+='<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><h3>Primer respondiente en trauma</h3>'+(prDone?'<span class="pill ok">Aprobado</span>':'<span class="pill info">En curso</span>')+'</div>'+
+      '<p class="sub">6 clases · 37 min en total · examen de 3 preguntas</p>'+
+      (prDone?'':'<div class="progress"><i style="width:'+Math.round(W.done/7*100)+'%"></i></div><p class="sub"><b>'+W.done+' de 6 clases vistas.</b> Te falta: '+(6-W.done)+' clase'+(6-W.done===1?'':'s')+' y el examen.</p>')+
+      '<button class="btn" data-w="program">'+(prDone?'Ver las clases':'Seguir con la clase '+(W.done+1))+'</button></div>'+
+      '<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><h3>Control de hemorragia y torniquete</h3><span class="pill ok">Aprobado</span></div><p class="sub">3 clases · 25 min · vigente hasta 22-mar-2027</p><button class="btn sec" type="button" disabled>Repasar cuando quieras</button></div>'+
+      '<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><h3>Inducción de seguridad CMC</h3><span class="pill warn">Vence 12-nov-2026</span></div><p class="sub">4 clases · 20 min · se renueva cada año</p><button class="btn sec" type="button" disabled>Se abre el 1 de noviembre</button></div>';
+    } else {
+      html+='<div class="card"><h3>Control de hemorragia y torniquete</h3><p class="sub">Emitida 22-mar-2026 · vigente hasta 22-mar-2027</p><span class="code" style="font-family:ui-monospace,Menlo,monospace;font-size:.8rem">CMC-CH-2026-0322-0188</span></div>'+
+      (prDone?'<div class="card"><h3>Primer respondiente en trauma</h3><p class="sub">Emitida hoy · vigente 12 meses</p><button class="btn sec" data-w="cert">Ver constancia</button></div>':'<div class="card"><h3>Primer respondiente en trauma</h3><p class="sub">Todavía no: termina las clases y aprueba el examen.</p></div>');
+    }
+    b.innerHTML=html;
+    $$('[data-tab]',b).forEach(function(x){x.addEventListener('click',function(){W.tab=x.dataset.tab;wRender()})});
     $$('[data-w]',b).forEach(function(x){x.addEventListener('click',function(){W.step=x.dataset.w;wRender()})});
-  } else if(W.step==='lesson'){
-    pill.className='pill info';pill.textContent='Lección 4 de 6';
+  } else if(W.step==='program'){
+    pill.className='pill info';pill.textContent=W.done+' de 6';
+    var prDone2=!!cert;
     b.innerHTML='<button class="back" data-w="home">‹ Mis programas</button>'+
-    '<div class="lesson"><div class="progress"><i style="width:66%"></i></div>'+
-    '<h3 style="font-size:1.15rem">Control de hemorragia en extremidades</h3>'+
-    '<div class="videoph" role="img" aria-label="Video de la lección, 3 minutos"><div class="play"></div><span class="dur">3:10</span></div>'+
-    '<p class="sub">Lo que haces en los primeros dos minutos decide más que la ambulancia. Tres pasos, en este orden:</p>'+
-    '<ol><li><b>Presión directa</b> firme y sostenida sobre la herida, con gasa o lo que tengas.</li><li>Si no cede, <b>torniquete</b> 5 a 7 cm por encima de la herida, nunca sobre una articulación.</li><li><b>Anota la hora</b> en el torniquete o en la piel y activa la línea.</li></ol>'+
-    '<button class="btn" data-w="quiz">Ir al examen · 3 preguntas</button></div>';
+    '<div><h3 style="font-size:1.15rem">Primer respondiente en trauma</h3><p class="sub">Toca la clase marcada para seguir. Cada una dura menos que un descanso.</p></div>'+
+    '<div class="progress"><i style="width:'+Math.round((prDone2?7:W.done)/7*100)+'%"></i></div>'+
+    '<div class="syllabus">'+CLASES.map(function(c,i){
+      var st=i<W.done?'done':i===W.done&&!prDone2?'cur':prDone2?'done':'lock';
+      var lab=st==='done'?'Vista':st==='cur'?'Seguir ›':'Bloqueada';
+      return '<button class="cl '+st+'" type="button" data-cl="'+i+'" '+(st==='lock'?'disabled':'')+'><span class="n">'+(st==='done'?'✓':c.n)+'</span><span><span class="ti">'+esc(c.t)+'</span><br><span class="du">Clase '+c.n+' · '+c.d+'</span></span><span class="st">'+lab+'</span></button>';
+    }).join('')+
+    '<button class="cl '+(prDone2?'done':W.done>=6?'cur':'lock')+'" type="button" data-w="quiz" '+(W.done>=6&&!prDone2?'':'disabled')+'><span class="n">'+(prDone2?'✓':'★')+'</span><span><span class="ti">Examen final</span><br><span class="du">3 preguntas · se aprueba con 80 %</span></span><span class="st">'+(prDone2?'Aprobado':W.done>=6?'Rendir ›':'Al terminar las clases')+'</span></button></div>';
+    $$('[data-cl]',b).forEach(function(x){x.addEventListener('click',function(){W.cur=+x.dataset.cl;W.step='lesson';wRender()})});
     $$('[data-w]',b).forEach(function(x){x.addEventListener('click',function(){W.step=x.dataset.w;W.quiz=[];wRender()})});
+  } else if(W.step==='lesson'){
+    var c=CLASES[W.cur];var isCur=W.cur===W.done;
+    pill.className='pill info';pill.textContent='Clase '+c.n+' de 6';
+    b.innerHTML='<button class="back" data-w="program">‹ Clases</button>'+
+    '<div class="lesson"><h3 style="font-size:1.15rem">'+esc(c.t)+'</h3><p class="sub">Clase '+c.n+' · '+c.d+' · video + 3 ideas clave</p>'+
+    '<div class="videoph" role="img" aria-label="Video de la clase"><div class="play"></div><span class="dur">'+c.d.replace(' min',':00')+'</span></div>'+
+    '<div class="kp">'+c.pts.map(function(p,i){return '<div><b>'+(i+1)+'</b><span>'+esc(p)+'</span></div>'}).join('')+'</div>'+
+    (isCur?'<button class="btn" id="w-done">Clase vista · siguiente</button>':'<button class="btn sec" data-w="program">Volver a las clases</button>')+'</div>';
+    $$('[data-w]',b).forEach(function(x){x.addEventListener('click',function(){W.step=x.dataset.w;wRender()})});
+    var bd=$('#w-done');if(bd)bd.addEventListener('click',function(){W.done=Math.min(6,W.done+1);toast('Clase '+c.n+' registrada');if(W.done>=6){W.step='program'}else{W.cur=W.done;W.step='lesson'}wRender()});
   } else if(W.step==='quiz'){
     var i=W.quiz.length;
     if(i>=QUIZ.length){W.step='result';return wRender()}
     pill.className='pill info';pill.textContent='Pregunta '+(i+1)+' de 3';
     var q=QUIZ[i];
-    b.innerHTML='<div class="progress"><i style="width:'+((i)/3*100)+'%"></i></div><div class="card"><h3>'+esc(q.q)+'</h3></div>'+
+    b.innerHTML='<button class="back" data-w="program">‹ Clases</button><div class="progress"><i style="width:'+((i)/3*100)+'%"></i></div><div class="card"><h3>'+esc(q.q)+'</h3></div>'+
     q.o.map(function(o,j){return '<button class="opt" data-a="'+j+'" aria-pressed="false"><span class="k">'+String.fromCharCode(65+j)+'</span><span>'+esc(o)+'</span></button>'}).join('');
+    $$('[data-w]',b).forEach(function(x){x.addEventListener('click',function(){W.step=x.dataset.w;wRender()})});
     $$('.opt',b).forEach(function(x){x.addEventListener('click',function(){W.quiz.push(+x.dataset.a===QUIZ[i].a);wRender()})});
   } else if(W.step==='result'){
     var ok=W.quiz.filter(Boolean).length;var pct=Math.round(ok/3*100);var pass=pct>=80;
     pill.className='pill '+(pass?'ok':'warn');pill.textContent=pct+' %';
     if(pass)store('cmc_demo_cert',{at:new Date().toISOString()});
     b.innerHTML='<div class="card"><h3 style="font-size:1.15rem">'+(pass?'Aprobado':'Aún no')+'</h3><p class="sub">'+ok+' de 3 correctas. Se aprueba con 80 % o más.</p>'+
-    (pass?'<p class="sub">Tu constancia ya está emitida y tu supervisor la ve en el tablero de CMC.</p><button class="btn" data-w="cert">Ver mi constancia</button>':'<p class="sub">Puedes repasar la lección y volver a intentarlo cuando quieras.</p><button class="btn" data-w="lesson">Repasar la lección</button>')+
+    (pass?'<p class="sub">Tu constancia ya está emitida y tu supervisor la ve en el tablero de CMC.</p><button class="btn" data-w="cert">Ver mi constancia</button>':'<p class="sub">Repasa la clase 4 y vuelve a intentarlo cuando quieras.</p><button class="btn" data-w="program">Volver a las clases</button>')+
     '</div>';
     $$('[data-w]',b).forEach(function(x){x.addEventListener('click',function(){W.step=x.dataset.w;W.quiz=[];wRender()})});
   } else if(W.step==='cert'){
@@ -479,7 +541,7 @@ function wRender(){
     '<p class="sub">Emitida el '+pad(d.getDate())+'-'+pad(d.getMonth()+1)+'-'+d.getFullYear()+' · vigente 12 meses</p><span class="code">CMC-PR-2026-'+pad(d.getDate())+pad(d.getMonth()+1)+'-0417</span>'+
     '<p class="sub">Programa de Trauma · Critical Medicine Care · EduTrauma</p></div>'+
     '<button class="btn sec" type="button" id="w-share">Enviar a mi WhatsApp</button>';
-    $$('[data-w]',b).forEach(function(x){x.addEventListener('click',function(){W.step=x.dataset.w;wRender()})});
+    $$('[data-w]',b).forEach(function(x){x.addEventListener('click',function(){W.step=x.dataset.w;W.tab='cursos';wRender()})});
     $('#w-share').addEventListener('click',function(){toast('Constancia enviada a tu WhatsApp (simulado)')});
   }
 }
@@ -490,8 +552,10 @@ var M={step:'idle',dir:null,nivel:null,mec:[],t0:null,marks:{},notes:[],timer:nu
 var MEC=['Caída de altura','Aplastamiento','Explosión','Vehículo','Herida penetrante','Quemadura'];
 function elapsed(){return M.t0?Math.floor((Date.now()-M.t0)/1000):0}
 function mark(k){if(!M.marks[k])M.marks[k]=elapsed()}
+var MSTEPS=[['idle','Activar'],['triage','Clasificar'],['connecting','Conectar'],['room','Sala'],['closing','Conducta'],['done','Cierre']];
+function mSteps(){var order=MSTEPS.map(function(x){return x[0]});var ci=order.indexOf(M.step);$('#m-steps').innerHTML=MSTEPS.map(function(x,i){return '<span class="'+(i<ci?'done':i===ci?'on':'')+'">'+(i<ci?'✓ ':'')+x[1]+'</span>'}).join('')}
 function mRender(){
-  var b=$('#m-body');var pill=$('#m-pill');
+  var b=$('#m-body');var pill=$('#m-pill');mSteps();
   if(M.timer){clearInterval(M.timer);M.timer=null}
   if(M.step==='idle'){
     pill.className='pill ok';pill.textContent='Guardia activa';
