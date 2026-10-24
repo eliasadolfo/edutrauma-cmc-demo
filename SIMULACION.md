@@ -1,4 +1,8 @@
-# Simulación de 200 usuarios sobre el demo (9-oct-2026, versión v2 del campus)
+# Simulación de 200 usuarios sobre el demo
+
+> **Actualización 23-oct-2026 (v3):** tras aplicar las 10 heurísticas (ver `EVALUACION_HEURISTICA.md`) el éxito total subió de 86 % a 90 %, T4 llegó a 100 % y T1 a 95 %. Resumen v3 en `sim/resumen_2026-10-23_v3.json`. Lo que sigue es el informe original de la v2.
+
+## Informe v2 (9-oct-2026)
 
 **Qué se hizo.** 200 usuarios sintéticos recorrieron el `index.html` real del demo (motor jsdom, sin navegador),
 cada uno con un rol, una tarea y una soltura digital distinta. El usuario modelado ve los botones visibles, elige

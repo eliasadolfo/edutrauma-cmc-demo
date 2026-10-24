@@ -38,22 +38,22 @@ function persona() {
 // done(doc): predicado de éxito sobre el DOM visible.
 const TAREAS = {
   trabajador: [
-    { id: 'T1', nombre: 'Entrar y ver la clase que te toca', optimal: 4,
-      kw: { trabajador: 3, entrar: 3, 'cédula': 1, clase: 3, clases: 3, seguir: 2, continuar: 2, programas: 1, 'primer respondiente': 2, siguiente: 1 },
+    { id: 'T1', nombre: 'Entrar y ver la clase que te toca', optimal: 3,
+      kw: { trabajador: 3, entrar: 3, 'cédula': 1, clase: 3, clases: 2, continuar: 4, programas: 1, 'primer respondiente': 2, siguiente: 1 },
       done: d => vis(d, '.lesson') && /Clase 4/.test(txt(d, '.lesson')) },
-    { id: 'T2', nombre: 'Terminar las clases, rendir el examen y ver la constancia', optimal: 11,
-      kw: { trabajador: 3, entrar: 3, clase: 3, clases: 3, seguir: 2, siguiente: 3, vista: 2, examen: 3, rendir: 3, constancia: 3, 'ver mi constancia': 4, aprobado: 1, programas: 1 },
+    { id: 'T2', nombre: 'Terminar las clases, rendir el examen y ver la constancia', optimal: 12,
+      kw: { trabajador: 3, entrar: 3, clase: 1, clases: 1, continuar: 4, siguiente: 4, vista: 2, examen: 3, rendir: 3, 'ver mi resultado': 5, constancia: 3, aprobado: 1, programas: 1, 'intentar de nuevo': 4 },
       done: d => vis(d, '.cert') },
     { id: 'T3', nombre: 'Saber cuándo vence tu habilitación de seguridad', optimal: 2,
       kw: { trabajador: 3, entrar: 3, vence: 4, seguridad: 3, 'inducción': 3, programas: 2, constancias: 1 },
       done: d => vis(d, '#v-trabajador') && /Vence 12-nov-2026/.test(txt(d, '#w-body')) },
   ],
   medico: [
-    { id: 'T4', nombre: 'Pedir apoyo del especialista para un trauma grave', optimal: 5,
-      kw: { 'médico': 3, terreno: 2, activar: 4, 'línea': 3, trauma: 3, rojo: 3, 'riesgo vital': 2, conectar: 4, especialista: 3, 'caída': 1 },
+    { id: 'T4', nombre: 'Pedir apoyo del especialista para un trauma grave', optimal: 4,
+      kw: { 'médico': 3, terreno: 2, activar: 4, 'línea': 3, trauma: 2, rojo: 4, 'riesgo vital': 2, conectar: 4, especialista: 1, 'caída': 1 },
       done: d => vis(d, '.room') },
-    { id: 'T5', nombre: 'Registrar la conducta y cerrar la activación', optimal: 7,
-      kw: { 'médico': 3, terreno: 2, activar: 4, 'línea': 3, trauma: 3, rojo: 3, conectar: 4, traslado: 3, conducta: 3, 'clínica': 2, cerrar: 4, entregado: 3, manejo: 1 },
+    { id: 'T5', nombre: 'Registrar la conducta y cerrar la activación', optimal: 8,
+      kw: { 'médico': 3, terreno: 2, activar: 4, 'línea': 3, trauma: 2, rojo: 4, conectar: 4, traslado: 3, conducta: 3, 'clínica': 1, cerrar: 4, 'sí, cerrar': 4, entregado: 3, confirmar: 4, manejo: 1 },
       done: d => /Activación #0147 cerrada/.test(txt(d, '#m-body')) },
   ],
   gerente: [
@@ -62,7 +62,7 @@ const TAREAS = {
       done: d => vis(d, '#v-gerencia') && d.querySelector('#t-act tbody tr') !== null },
     { id: 'T7', nombre: 'Ver solo lo que pasa en Maturín', optimal: 2,
       kw: { gerencia: 4, tablero: 3, sede: 3, sedes: 3, 'maturín': 5, filtrar: 2 },
-      done: d => vis(d, '#v-gerencia') && d.querySelector('#f-sede').value === 'Maturín' },
+      done: d => { const c = d.querySelector('#f-sede .chip[aria-pressed="true"]'); return vis(d, '#v-gerencia') && !!c && c.textContent.trim() === 'Maturín'; } },
     { id: 'T8', nombre: 'Saber qué contratista tiene menor cobertura', optimal: 1,
       kw: { gerencia: 4, tablero: 3, contratista: 4, entrenado: 2, cobertura: 2 },
       done: d => vis(d, '#v-gerencia') && d.querySelector('#b-contra .bar-row') !== null },
@@ -89,7 +89,8 @@ function score(el, tarea, p, hist) {
   for (const k in tarea.kw) if (l.includes(k)) s += tarea.kw[k];
   // leer la bajada: solo quienes "leen" aprovechan textos largos (tarjetas de rol)
   if (l.length > 60 && rnd() > p.reads) s *= 0.5;
-  if (el.classList.contains('cur')) s += 2.5; // resaltado visual (borde navy + 'Seguir ›')
+  if (el.classList.contains('cur')) s += 2.5;
+  if (el.classList.contains('reset') || el.id === 'open-real') s *= 0.4; // resaltado visual (borde navy + 'Seguir ›')
   // elementos de la barra superior son pequeños: menos salientes para soltura baja
   if (el.classList.contains('tab')) s *= p.lit === 'baja' ? 0.55 : p.lit === 'media' ? 0.8 : 1;
   // urgencia: el botón grande rojo atrae, textos largos repelen
@@ -102,9 +103,9 @@ function score(el, tarea, p, hist) {
 
 function firmaVista(d) {
   const v = ['inicio', 'trabajador', 'medico', 'gerencia', 'caso'].find(n => vis(d, '#v-' + n));
-  const body = v === 'trabajador' ? txt(d, '#w-body') : v === 'medico' ? txt(d, '#m-body') : v === 'gerencia' ? (d.querySelector('#f-sede').value + '|' + d.querySelector('#f-dir').value) : '';
+  const body = v === 'trabajador' ? txt(d, '#w-body') : v === 'medico' ? txt(d, '#m-body') : v === 'gerencia' ? ((d.querySelector('#f-sede .chip[aria-pressed="true"]') || {}).textContent + '|' + d.querySelector('#f-dir').value) : '';
   const estados = Array.from(d.querySelectorAll('[aria-pressed="true"]')).filter(e => !hiddenAnc(e)).map(e => e.textContent.trim()).join(',');
-  return v + '|' + body.slice(0, 120) + '|' + estados;
+  return v + '|' + body.length + ':' + body.slice(0, 120) + body.slice(-80) + '|' + estados;
 }
 
 async function correr(tarea, p) {
@@ -130,7 +131,8 @@ async function correr(tarea, p) {
     // la gerencia usa <select>: elegir opción relevante si existe
     let scored = cands.map(el => ({ el, s: score(el, tarea, p, hist) })).sort((a, b) => b.s - a.s);
     const opts = cands.filter(el => el.classList.contains('opt'));
-    if (opts.length) { const correcta = { 'un compañero': 0, 'la presión directa': 1, 'qué anotas': 1 }; const q = txt(d, '.card h3').toLowerCase(); const ci = Object.keys(correcta).find(k => q.includes(k)); const idx = (rnd() < 0.85 && ci !== undefined) ? correcta[ci] : Math.floor(rnd() * opts.length); scored = [{ el: opts[idx], s: 9 }]; }
+    const yaMarcada = opts.some(el => el.getAttribute('aria-pressed') === 'true');
+    if (opts.length && !yaMarcada) { const correcta = { 'un compañero': 0, 'la presión directa': 1, 'qué anotas': 1 }; const q = txt(d, '.card h3').toLowerCase(); const ci = Object.keys(correcta).find(k => q.includes(k)); const idx = (rnd() < 0.85 && ci !== undefined) ? correcta[ci] : Math.floor(rnd() * opts.length); scored = [{ el: opts[idx], s: 9 }]; }
     const best = scored[0];
     if (best.s < 0.8) { sinCambio++; if (sinCambio >= 3) { abandono = 'no encontró qué tocar'; break; } taps++; hist.push({ label: '(explora)', changed: false, view: firmaVista(d) }); continue; }
     const antes = firmaVista(d);
